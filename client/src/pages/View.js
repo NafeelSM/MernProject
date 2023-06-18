@@ -1,10 +1,13 @@
-import React,{useState,useEffect} from 'react'
+import React,{useState,useEffect} from 'react'//useEffect used to side effect directly in our component body
 import axios from "axios";
+import Swal from "sweetalert2";
+
 import { Link, Navigate} from "react-router-dom";
 
 function View() {
     
        const [employees,setEmployees]=useState([]);
+       const[value,setValue]=useState("")
 
        
 useEffect(()=>{
@@ -17,8 +20,17 @@ useEffect(()=>{
               },[])
 
    const handleDelete=async(id)=>{
-    const confirmed = window.confirm("Are you sure you want to delete this employee?");
-    if(confirmed){await axios.delete(`http://localhost:7000/api/v1/emp/${id}`);
+    const result = await Swal.fire({
+      title: 'ARE YOU SURE ?',
+      text: "DO YOU WANT TO DELETE THIS!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#32dd32',
+      cancelButtonColor: '#da2424',
+      confirmButtonText: 'YES'
+    });
+
+    if(result.isConfirmed){await axios.delete(`http://localhost:7000/api/v1/emp/${id}`);
     const newEmployee=employees.filter((item)=>{
         return item._id!==id;
         
@@ -28,53 +40,83 @@ useEffect(()=>{
     Navigate('/edit');
 }
     
-   };           
+   };      
+   const handleSearch = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.get(`http://localhost:7000/api/v1/emp/search?empid=${value}&name=${value}}`);
+      setEmployees(res.data);
+      setValue("");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+   
+  
   return (
     
     <div className="mt-5">
     <div className='container'> 
-    <h2 class="text-center"> <b>EMPLOYEE DETAILS </b></h2>
+    <form class="d-flex" role="search"   onSubmit={handleSearch}>
+        <input class="form-control me-2"
+         type="search"
+          placeholder="Emp ID" 
+          aria-label="Search"
+          value={value}
+          onChange={(e)=>setValue(e.target.value)}/>
+        <button class="btn btn-outline-success" type="submit">SEARCH</button>
+      </form>
+    <h2 class="text-center"> <b>ALL EMPLOYEE DETAILS </b></h2>
+    
     <table className="table">
+    
     <thead >
       <tr style={{ backgroundColor:'#0d0d0d' , color:'white'  }}>
-              <th scope="col">No</th>
-              <th scope="col">Employee ID</th>
-              <th scope="col">Employee Name</th>
-              <th scope="col">Employee email</th>
-              <th scope="col">Employee address</th>
-              <th scope="col">salary</th>
-              <th scope="col"> phone No</th>
-      <th scope="col">Edit</th>
-      <th scope="col">Delete</th>
+              <th scope="col">NO</th>
+              <th scope="col">ID</th>
+              <th scope="col">NAME</th>
+              <th scope="col">NIC</th>
+              <th scope="col">EMAIL</th>
+              <th scope="col">ADDRESS</th>
+              <th scope="col">DESIGNATION</th>
+              <th scope="col">SALARY(LKR)</th>
+              <th scope="col">PHONE NO</th>
+              
+              
+      <th scope="col">EDIT</th>
+      <th scope="col">DELETE</th>
     </tr>
   </thead>
 
-  <tbody>
-               
+
+  <tbody>     
               {employees && employees.map((employee,index)=>{
                         return (
                           <tr key={employee._id}>
                             <td>{index + 1}</td>
                             <td>{employee.empid}</td>
                             <td>{employee.name}</td>
+                            <td>{employee.nic}</td>
                             <td>{employee.email}</td>
                             <td>{employee.address}</td>
+                            <td>{employee.designation}</td>
                             <td>{employee.salary}</td>
                             <td>{employee.phone}</td>
+                            
+                            
                            
-                     
                             <td> <Link to={`/edit_emp_form/${employee._id}`}>
-                            <button className='btn btn-primary'>Edit</button>
+                            <button className='btn btn-primary'>EDIT</button>
                           </Link></td>
                            
-                            <td> <button onClick={()=>handleDelete(employee._id)} className='btn  btn-danger'>Delete</button></td>
+                            <td> <button onClick={()=>handleDelete(employee._id)} className='btn  btn-danger'>DELETE</button></td>
                         </tr>
 
                         )
                        })}
             </tbody>
-        </table>
-        
+        </table>      
     </div>
 
 </div>

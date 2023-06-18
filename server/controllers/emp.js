@@ -3,7 +3,7 @@ import empModel from "../models/emp.js"
 class empController{
     static getAllEmp = async (req, res) => {
         try {
-            
+            //try & catch error execution
             const allEmp = await empModel.find({});
             if(allEmp){
                 return res.status(200).json(allEmp);
@@ -14,14 +14,16 @@ class empController{
     };
 
     static createEmp = async (req, res) => {
-        const {empid, name, email, address, salary, phone} = req.body;
+        const {empid, name, nic, email, address,designation, salary, phone} = req.body;
         try {
-            if(empid && name && email && address && salary && phone){
+            if(empid && name && nic && email && address && designation&& salary && phone){
                 const newEmp = empModel({
                     empid,
                     name,
+                    nic,
                     email,
                     address,
+                    designation,
                     salary,
                     phone,
                 });
@@ -87,19 +89,36 @@ class empController{
         }
     }; 
     static getsearchemployee=async(req,res)=>{
-        const {name}=req.query;
+        const { query } = req;
+        const { name, empid } = query;
         
-            try{
-                const searchResults=await empModel.find({
-                    name: { $regex: new RegExp(name, 'i') } 
-                });
-
+        try {
+            let searchResults = [];
+        
+            if (name && empid) {
+              // If both name and distributor ID are present in the query parameters
+              searchResults = await empModel.find({
+                $or: [
+                  { name: { $regex: new RegExp(name, 'i') } },
+                  { empid: { $regex: new RegExp(empid, 'i') } },
+                ]
+              });
+            } else if (name) {
+              // If only name is present in the query parameters
+              searchResults = await empModel.find({
+                name: { $regex: new RegExp(name, 'i') }
+              });
+            } else if (empid) {
+              // If only distributor ID is present in the query parameters
+              searchResults = await empModel.find({
+                empid: { $regex: new RegExp(empid, 'i') }
+              });
+            }
+        
             return res.status(200).json(searchResults);
-
-            
-        } catch (error) {
+          } catch (error) {
             return res.status(400).json(error);
-        }
+          }
     };
 }
 

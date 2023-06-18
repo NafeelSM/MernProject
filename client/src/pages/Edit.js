@@ -1,5 +1,6 @@
 import React,{useEffect,useState}from 'react';
 import axios from "axios";
+import Swal from "sweetalert2";
 import { useParams,useNavigate} from 'react-router-dom';
 
 
@@ -10,33 +11,75 @@ function Edit() {
     const [input, setInput] = useState({
         empid: "",
         name: "",
-       email: "",
+        nic: "",
+        email: "",
         address: "",
         salary: "",
         phone: "",
+        designation: "",
+        
     });
 
-    useEffect(()=>{
-        const getAllData=async()=>{
-              const res=await axios.get(`http://localhost:7000/api/v1/emp/single/${id}`);
-              setInput(res.data);
+  
+    useEffect(() => {
+        const getAllData = async () => {
+            const res=await axios.get(`http://localhost:7000/api/v1/emp/single/${id}`);
+          const data = res.data;
+          data.isValidPhone = true;
+          data.isValidNic=true; // Set isValidContact_No to true
+          setInput(data);
+          console.log("dis:", setInput);
         };
         getAllData();
-               },[id])
+               },[id]);
     
     const handleUpdate=async (e) =>{
     e.preventDefault();
-    const confirmed = (window.confirm("Are you sure you want to update this Employee?")) 
-    if(confirmed){await axios.put(`http://localhost:7000/api/v1/emp/${id}`, input);
-    navigate('/edit');
-    }else{
+   
+    const result = await Swal.fire({
+        title: 'ARE YOU SURE?',
+        text: "DO YOU WANT TO UPDATE THIS",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#32dd32',
+        cancelButtonColor: '#da2424',
+        confirmButtonText: 'YES'
+      });
+     if(result.isConfirmed){await axios.put(`http://localhost:7000/api/v1/emp/${id}`, input);
+     navigate('/edit');
+     }else{
         navigate('/edit');
-    }
+     }
     };
 
     const handleInputChange = event => {
         const { name, value } = event.target;
-        setInput({ ...input, [name]: value });
+        let isValidPhone = input.isValidPhone
+        let isValidNic=input.isValidNic
+        if (name === 'nic') {
+            // NIC validation logic
+            isValidNic = false;
+            if (value.length === 10 && value.match(/^\d{9}[vV]$/)) {
+              isValidNic = true;
+            } else if (value.length === 12 && value.match(/^\d{12}$/)) {
+              isValidNic = true;
+            }
+          }
+
+        if (name === 'phone') {
+            // Check if the input field being updated is the contactNo field 
+             isValidPhone = false;
+             if (value.length === 10) {
+                 isValidPhone = true;
+             } 
+           }
+
+        setInput({ ...input, [name]: value,
+            isValidPhone: isValidPhone,
+            isValidNic:isValidNic
+     });
+        
+        
       };
     
   return (
@@ -46,7 +89,7 @@ function Edit() {
                     <h4><b>EMPLOYEE DETAILS</b></h4><br></br>
                     <div>
                     <div class="mb-3 col-lg-6 col-md-6 col-12">
-                        <label for="exampleInputEmail1" class="form-label">employee ID</label>
+                        <label for="exampleInputEmail1" class="form-label">EMPLOYEE ID</label>
                         <input
                             name="empid"
                             value={input.empid}
@@ -58,18 +101,32 @@ function Edit() {
                         />
                     </div>
                     <div class="mb-3 col-lg-6 col-md-6 col-12">
-                        <label for="exampleInputPassword1" class="form-label">customer Name</label>
+                        <label for="exampleInputPassword1" class="form-label">EMPLOYEE NAME</label>
                         <input
                             name="name"
                             value={input.name}
                             onChange={handleInputChange}
-                            type="text"
+                            type="salary_amount"
                             class="form-control"
                             id="exampleInputPassword1"
                         />
                     </div>
                     <div class="mb-3 col-lg-6 col-md-6 col-12">
-                        <label for="exampleInputPassword1" class="form-label">email</label>
+                        <label for="exampleInputPassword1" class="form-label">NIC</label>
+                        <input
+                            name="nic"
+                            value={input.nic}
+                            onChange={handleInputChange}
+                            type="text"
+                            class="form-control"
+                            id="exampleInputPassword1"
+                        />
+                          {!input.isValidNic && (
+                        <span style={{ color: "red" }}>Invalid NIC Number</span>
+                        )}
+                    </div>
+                    <div class="mb-3 col-lg-6 col-md-6 col-12">
+                        <label for="exampleInputPassword1" class="form-label">EMAIL</label>
                         <input
                             name="email"
                             value={input.email}
@@ -80,7 +137,7 @@ function Edit() {
                         />
                     </div>
                     <div class="mb-3 col-lg-6 col-md-6 col-12">
-                        <label for="exampleInputPassword1" class="form-label">employee address</label>
+                        <label for="exampleInputPassword1" class="form-label">ADDRESS</label>
                         <input
                             name="address"
                             value={input.address}
@@ -91,7 +148,18 @@ function Edit() {
                         />
                     </div>
                     <div class="mb-3 col-lg-6 col-md-6 col-12">
-                        <label for="exampleInputPassword1" class="form-label">salary</label>
+                        <label for="exampleInputPassword1" class="form-label">DESIGNATION</label>
+                        <input
+                            name="designation"
+                            value={input.designation}
+                            onChange={handleInputChange}
+                            type="text"
+                            class="form-control"
+                            id="exampleInputPassword1"
+                        />
+                    </div>
+                    <div class="mb-3 col-lg-6 col-md-6 col-12">
+                        <label for="exampleInputPassword1" class="form-label">SALARY(LKR)</label>
                         <input
                             name="salary"
                             value={input.salary}
@@ -102,7 +170,7 @@ function Edit() {
                         />
                     </div>
                     <div class="mb-3 col-lg-6 col-md-6 col-12">
-                        <label for="exampleInputPassword1" class="form-label">phone No</label>
+                        <label for="exampleInputPassword1" class="form-label">PHONE NO</label>
                         <input
                             name="phone"
                             value={input.phone}
@@ -111,12 +179,15 @@ function Edit() {
                             class="form-control"
                             id="exampleInputPassword1"
                         />
+                         {!input.isValidPhone && (
+                        <span style={{ color: "red" }}>Invalid Phone Number</span>
+                        )}
                     </div>
                     
                     </div>
                 </div>
         <div class="my-3">
-            <button type="submit" class="btn btn-primary me-5">Update</button>
+            <button type="submit" class="btn btn-primary me-5">UPDATE</button>
         </div>
     </form>
     </div>
