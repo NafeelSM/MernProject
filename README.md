@@ -1,2 +1,1 @@
-# ITP_WD_B01_G02
-We are the best 
+Full stack web application in ITP module
